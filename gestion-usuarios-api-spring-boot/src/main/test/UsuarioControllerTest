@@ -1,0 +1,113 @@
+package com.gestion;
+
+import com.gestion.controller.UsuarioController;
+import com.gestion.dto.CrearUsuarioRequest;
+import com.gestion.dto.UsuarioDTO;
+import com.gestion.services.UsuarioService;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+import org.springframework.hateoas.EntityModel;
+import org.springframework.http.ResponseEntity;
+
+import java.util.Arrays;
+import java.util.List;
+
+import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.*;
+
+public class UsuarioControllerTest {
+
+    @Mock
+    private UsuarioService usuarioService;
+
+    @InjectMocks
+    private UsuarioController usuarioController;
+
+    @BeforeEach
+    public void setUp() {
+        MockitoAnnotations.openMocks(this);
+    }
+
+    @Test
+    public void testCrearUsuario_Exitoso() {
+        CrearUsuarioRequest request = new CrearUsuarioRequest();
+        request.setNombreUsuario("Juan");
+        request.setEmail("juan@example.com");
+        request.setContrasena("password123");
+        request.setRol("cliente");
+        request.setEstado("activo");
+        request.setNombreCompleto("Juan Pérez");
+        request.setRut("12345678-9");
+        request.setDireccion("Calle 123");
+        request.setTelefono("123456789");
+        request.setAreaVentas(null);
+
+        UsuarioDTO dto = new UsuarioDTO();
+        dto.setIdUsuario(1);
+        dto.setNombreUsuario("Juan");
+        dto.setEmail("juan@example.com");
+        dto.setRol("cliente");
+        dto.setEstado("activo");
+
+        when(usuarioService.crearUsuario(request)).thenReturn(new Usuario());
+        when(usuarioService.buscarUsuarioPorId(1)).thenReturn(dto);
+
+        ResponseEntity<EntityModel<UsuarioDTO>> response = usuarioController.crearUsuario(request);
+
+        assertEquals(200, response.getStatusCodeValue());
+        assertNotNull(response.getBody().getContent());
+        assertEquals(dto, response.getBody().getContent());
+        verify(usuarioService, times(1)).crearUsuario(request);
+        verify(usuarioService, times(1)).buscarUsuarioPorId(1);
+    }
+
+    @Test
+    public void testObtenerHATEOAS_Exitoso() {
+        Integer id = 1;
+        UsuarioDTO dto = new UsuarioDTO();
+        dto.setIdUsuario(id);
+        dto.setNombreUsuario("Juan");
+        dto.setEmail("juan@example.com");
+        dto.setRol("cliente");
+        dto.setEstado("activo");
+
+        when(usuarioService.buscarUsuarioPorId(id)).thenReturn(dto);
+
+        ResponseEntity<EntityModel<UsuarioDTO>> response = usuarioController.obtenerHATEOAS(id);
+
+        assertEquals(200, response.getStatusCodeValue());
+        assertNotNull(response.getBody().getContent());
+        assertEquals(dto, response.getBody().getContent());
+        verify(usuarioService, times(1)).buscarUsuarioPorId(id);
+    }
+
+    @Test
+    public void testObtenerTodosHATEOAS_Exitoso() {
+        UsuarioDTO dto1 = new UsuarioDTO();
+        dto1.setIdUsuario(1);
+        dto1.setNombreUsuario("Juan");
+        dto1.setEmail("juan@example.com");
+        dto1.setRol("cliente");
+        dto1.setEstado("activo");
+
+        UsuarioDTO dto2 = new UsuarioDTO();
+        dto2.setIdUsuario(2);
+        dto2.setNombreUsuario("Maria");
+        dto2.setEmail("maria@example.com");
+        dto2.setRol("vendedor");
+        dto2.setEstado("activo");
+
+        List<UsuarioDTO> usuarios = Arrays.asList(dto1, dto2);
+        when(usuarioService.listarUsuarios()).thenReturn(usuarios);
+
+        ResponseEntity<List<EntityModel<UsuarioDTO>>> response = usuarioController.obtenerTodosHATEOAS();
+
+        assertEquals(200, response.getStatusCodeValue());
+        assertNotNull(response.getBody());
+        assertEquals(2, response.getBody().size());
+        verify(usuarioService, times(1)).listarUsuarios();
+    }
+}
